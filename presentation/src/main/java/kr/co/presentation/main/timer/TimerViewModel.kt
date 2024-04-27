@@ -2,29 +2,30 @@ package kr.co.presentation.main.timer
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kr.co.domain.usecase.ClearTimerUseCase
+import kr.co.domain.usecase.StartTimerUseCase
+import kr.co.domain.usecase.StopTimerUseCase
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.syntax.simple.intent
 import org.orbitmvi.orbit.syntax.simple.postSideEffect
 import org.orbitmvi.orbit.syntax.simple.reduce
 import org.orbitmvi.orbit.viewmodel.container
-import java.util.Timer
 import javax.inject.Inject
-import kotlin.concurrent.timer
 
 @HiltViewModel
 class TimerViewModel @Inject constructor(
-
+    private val startTimerUseCase: StartTimerUseCase,
+    private val stopTimerUseCase: StopTimerUseCase,
+    private val clearTimerUseCase: ClearTimerUseCase
 ) : ViewModel(), ContainerHost<TimerState, TimerSideEffect> {
-
-    var timer: Timer? = null
-    var time = 0
 
     override val container: Container<TimerState, TimerSideEffect> =
         container(
@@ -36,32 +37,19 @@ class TimerViewModel @Inject constructor(
             }
         )
 
-
-    init {
-        load()
-    }
-
-    private fun load() = intent {
-        reduce {
-            state.copy(
-                timerText = "00:00",
-                startState = false
-            )
-        }
-    }
-
     @OptIn(DelicateCoroutinesApi::class)
     fun startToggleClick() = intent {
         if (state.startState) {
-            timer?.cancel()
+            stopTimerUseCase.invoke()
         } else {
-            timer = timer(period = 1000) {
-                time++
-                val sec = (time % 60)
-                val min = time / 60
+            viewModelScope.launch {
+                val time: Flow<Int> = startTimerUseCase.invoke().getOrThrow()
+                time.collect { time ->
+                    val sec = (time % 60)
+                    val min = time / 60
 
-                Log.d("", "${"%02d".format(min)}:${"%02d".format(sec)}")
-                GlobalScope.launch {
+                    Log.d("TimerViewModel", "${"%02d".format(min)}:${"%02d".format(sec)}")
+
                     reduce {
                         state.copy(
                             timerText = "${"%02d".format(min)}:${"%02d".format(sec)}"
@@ -79,7 +67,7 @@ class TimerViewModel @Inject constructor(
     }
 
     fun clearClick() = intent {
-        time = 0
+        clearTimerUseCase.invoke()
         reduce {
             state.copy(
                 timerText = "00:00"
@@ -89,7 +77,7 @@ class TimerViewModel @Inject constructor(
 }
 
 data class TimerState(
-    val timerText: String = "",
+    val timerText: String = "00:00",
     val startState: Boolean = false
 )
 
