@@ -1,6 +1,5 @@
 package kr.co.presentation.main.timer
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +36,14 @@ class TimerViewModel @Inject constructor(
             }
         )
 
+    private fun getTimerText(data: Int): String {
+        val mSec = (data % 100)
+        val sec = (data / 100) % 60
+        val min = (data / 100) / 60
+
+        return "${"%02d".format(min)}:${"%02d".format(sec)}.${"%02d".format(mSec)}"
+    }
+
     fun startToggleClick() = intent {
         if (state.startState) {
             stopTimerUseCase.invoke(Timer1)
@@ -44,34 +51,17 @@ class TimerViewModel @Inject constructor(
             viewModelScope.launch {
                 val time: Flow<Int> = startTimerUseCase.invoke(Timer1).getOrThrow()
                 time.collect { data ->
-                    val sec = (data % 60)
-                    val min = data / 60
-
-                    Log.d("TimerViewModel", "${"%02d".format(min)}:${"%02d".format(sec)}")
-
-                    reduce {
-                        state.copy(
-                            timerText = "${"%02d".format(min)}:${"%02d".format(sec)}"
-                        )
-                    }
+                    reduce { state.copy(timerText = getTimerText(data)) }
                 }
             }
         }
 
-        reduce {
-            state.copy(
-                startState = !state.startState
-            )
-        }
+        reduce { state.copy(startState = !state.startState) }
     }
 
     fun clearClick() = intent {
         clearTimerUseCase.invoke(Timer1)
-        reduce {
-            state.copy(
-                timerText = "00:00"
-            )
-        }
+        reduce { state.copy(timerText = "00:00.00") }
     }
 
     fun startToggleClick2() = intent {
@@ -81,40 +71,23 @@ class TimerViewModel @Inject constructor(
             viewModelScope.launch {
                 val time: Flow<Int> = startTimerUseCase.invoke(Timer2).getOrThrow()
                 time.collect { data ->
-                    val sec = (data % 60)
-                    val min = data / 60
-
-                    Log.d("TimerViewModel", "${"%02d".format(min)}:${"%02d".format(sec)}")
-
-                    reduce {
-                        state.copy(
-                            timerText2 = "${"%02d".format(min)}:${"%02d".format(sec)}"
-                        )
-                    }
+                    reduce { state.copy(timerText2 = getTimerText(data)) }
                 }
             }
         }
 
-        reduce {
-            state.copy(
-                startState2 = !state.startState2
-            )
-        }
+        reduce { state.copy(startState2 = !state.startState2) }
     }
 
     fun clearClick2() = intent {
         clearTimerUseCase.invoke(Timer2)
-        reduce {
-            state.copy(
-                timerText2 = "00:00"
-            )
-        }
+        reduce { state.copy(timerText2 = "00:00.00") }
     }
 }
 
 data class TimerState(
-    val timerText: String = "00:00",
-    val timerText2: String = "00:00",
+    val timerText: String = "00:00.00",
+    val timerText2: String = "00:00.00",
     val startState: Boolean = false,
     val startState2: Boolean = false
 )

@@ -1,6 +1,5 @@
 package kr.co.data.work
 
-import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -13,9 +12,8 @@ object WorkTimer2 {
     fun start(): Flow<Int> = flow {
         startFlag = true
         while (startFlag) {
-            Log.d("WorkTimer", "$time")
             emit(time)
-            delay(1000L)
+            delay(10L)
             time++
         }
     }

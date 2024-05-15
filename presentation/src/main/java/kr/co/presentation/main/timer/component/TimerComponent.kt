@@ -37,7 +37,7 @@ fun TimerComponent(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = timerText,
-            fontSize = 100.sp
+            fontSize = 60.sp
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
