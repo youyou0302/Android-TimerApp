@@ -65,12 +65,12 @@ fun TimerScreenPreview() {
     TimerAppTheme {
         Surface {
             TimerScreen(
-                timerText = "00:00",
+                timerText = "00:00.00",
                 startState = true,
                 onStartToggleClick = {},
                 onClearClick = {},
-                timerText2 = "00:00",
-                startState2 = true,
+                timerText2 = "00:00.00",
+                startState2 = false,
                 onStartToggleClick2 = {},
                 onClearClick2 = {}
             )

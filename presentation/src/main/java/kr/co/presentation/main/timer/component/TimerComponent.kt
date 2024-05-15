@@ -1,5 +1,7 @@
 package kr.co.presentation.main.timer.component
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,8 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -28,10 +30,20 @@ fun TimerComponent(
     onStartToggleClick: () -> Unit,
     onClearClick: () -> Unit
 ) {
+    val extraSize by animateDpAsState(
+        if (startState) 200.dp else 160.dp, label = ""
+    )
+    val extraBackgroundColor by animateColorAsState(
+        if (startState) Color.Red else Color.White, label = ""
+    )
+
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .size(extraSize)
             .border(1.dp, Color.Green)
             .padding(10.dp)
+            .background(extraBackgroundColor)
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -43,48 +55,15 @@ fun TimerComponent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            TextButton(
-                modifier = Modifier
-                    .background(Color.Black)
-                    .size(width = 150.dp, height = 70.dp),
-                onClick = onStartToggleClick
-            ) {
-                if (startState) {
-                    Text(
-                        color = Color.White,
-                        text = "STOP",
-                        fontSize = 30.sp
-                    )
-                } else {
-                    Text(
-                        color = Color.White,
-                        text = "START",
-                        fontSize = 30.sp
-                    )
-                }
-            }
+            StartToggleButtonComponent(
+                startState = startState,
+                onStartToggleClick = onStartToggleClick
+            )
             Spacer(modifier = Modifier.padding(10.dp))
-            TextButton(
-                modifier = Modifier
-                    .background(Color.Black)
-                    .size(width = 150.dp, height = 70.dp),
-                onClick = onClearClick,
-                enabled = !startState
-            ) {
-                if (startState) {
-                    Text(
-                        color = Color.Red,
-                        text = "CLEAR",
-                        fontSize = 30.sp
-                    )
-                } else {
-                    Text(
-                        color = Color.White,
-                        text = "CLEAR",
-                        fontSize = 30.sp
-                    )
-                }
-            }
+            ClearButtonComponent(
+                startState = startState,
+                onClearClick = onClearClick
+            )
         }
     }
 }
@@ -95,8 +74,8 @@ fun TimerComponentPreview() {
     TimerAppTheme {
         Surface {
             TimerComponent(
-                timerText = "00:00",
-                startState = true,
+                timerText = "00:00.00",
+                startState = false,
                 onStartToggleClick = {},
                 onClearClick = {}
             )
