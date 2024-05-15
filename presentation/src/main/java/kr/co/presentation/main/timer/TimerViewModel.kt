@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kr.co.domain.data.Timer1
+import kr.co.domain.data.Timer2
 import kr.co.domain.usecase.ClearTimerUseCase
 import kr.co.domain.usecase.StartTimerUseCase
 import kr.co.domain.usecase.StopTimerUseCase
@@ -37,16 +37,15 @@ class TimerViewModel @Inject constructor(
             }
         )
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun startToggleClick() = intent {
         if (state.startState) {
-            stopTimerUseCase.invoke()
+            stopTimerUseCase.invoke(Timer1)
         } else {
             viewModelScope.launch {
-                val time: Flow<Int> = startTimerUseCase.invoke().getOrThrow()
-                time.collect { time ->
-                    val sec = (time % 60)
-                    val min = time / 60
+                val time: Flow<Int> = startTimerUseCase.invoke(Timer1).getOrThrow()
+                time.collect { data ->
+                    val sec = (data % 60)
+                    val min = data / 60
 
                     Log.d("TimerViewModel", "${"%02d".format(min)}:${"%02d".format(sec)}")
 
@@ -67,10 +66,47 @@ class TimerViewModel @Inject constructor(
     }
 
     fun clearClick() = intent {
-        clearTimerUseCase.invoke()
+        clearTimerUseCase.invoke(Timer1)
         reduce {
             state.copy(
                 timerText = "00:00"
+            )
+        }
+    }
+
+    fun startToggleClick2() = intent {
+        if (state.startState2) {
+            stopTimerUseCase.invoke(Timer2)
+        } else {
+            viewModelScope.launch {
+                val time: Flow<Int> = startTimerUseCase.invoke(Timer2).getOrThrow()
+                time.collect { data ->
+                    val sec = (data % 60)
+                    val min = data / 60
+
+                    Log.d("TimerViewModel", "${"%02d".format(min)}:${"%02d".format(sec)}")
+
+                    reduce {
+                        state.copy(
+                            timerText2 = "${"%02d".format(min)}:${"%02d".format(sec)}"
+                        )
+                    }
+                }
+            }
+        }
+
+        reduce {
+            state.copy(
+                startState2 = !state.startState2
+            )
+        }
+    }
+
+    fun clearClick2() = intent {
+        clearTimerUseCase.invoke(Timer2)
+        reduce {
+            state.copy(
+                timerText2 = "00:00"
             )
         }
     }
@@ -78,7 +114,9 @@ class TimerViewModel @Inject constructor(
 
 data class TimerState(
     val timerText: String = "00:00",
-    val startState: Boolean = false
+    val timerText2: String = "00:00",
+    val startState: Boolean = false,
+    val startState2: Boolean = false
 )
 
 sealed interface TimerSideEffect {
